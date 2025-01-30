@@ -1,18 +1,33 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract PixelStorageFactory {
+import "./PixelStorageSegment.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
+
+contract PixelStorageFactory is ERC721 {
+    using Counters for Counters.Counter;
+    Counters.Counter private _tokenIds;
+
     PixelStorageSegment[] public segments;
     uint8 public constant SEGMENT_SIZE = 100; // 100x100 pixels per segment
 
-    constructor() {
+    // Mapping from tokenId to pixel coordinates
+    mapping(uint256 => Coordinates) private _tokenCoordinates;
+    
+    struct Coordinates {
+        uint16 x;
+        uint16 y;
+    }
+
+    constructor() ERC721("MillionEthPixel", "MEP") {
         // Create 100 segments to cover 1000x1000 grid (10x10 segments)
         for (uint8 i = 0; i < 100; i++) {
             segments.push(new PixelStorageSegment());
         }
     }
 
-    /// @notice Sets a rectangle of pixels to the specified color
+    /// @notice Sets a rectangle of pixels to the specified color and mints NFTs for each pixel
     /// @param startX The x coordinate of the top-left corner of the rectangle (0-999)
     /// @param startY The y coordinate of the top-left corner of the rectangle (0-999)
     /// @param width The width of the rectangle in pixels
@@ -44,11 +59,17 @@ contract PixelStorageFactory {
                 require(existingColor == 0, "One or more pixels already set");
 
                 segments[segmentIndex].setPixel(localX, localY, color, msg.sender);
+                
+                // Mint NFT for this pixel
+                _tokenIds.increment();
+                uint256 newTokenId = _tokenIds.current();
+                _mint(msg.sender, newTokenId);
+                _tokenCoordinates[newTokenId] = Coordinates(x, y);
             }
         }
     }
 
-    /// @notice Sets a single pixel to the specified color
+    /// @notice Sets a single pixel to the specified color and mints an NFT
     /// @param x The x coordinate of the pixel (0-999)
     /// @param y The y coordinate of the pixel (0-999)
     /// @param color The RGB color to set the pixel to (as bytes3)
@@ -73,6 +94,12 @@ contract PixelStorageFactory {
         require(existingColor == 0, "Pixel already set");
 
         segments[segmentIndex].setPixel(localX, localY, color, msg.sender);
+
+        // Mint NFT for this pixel
+        _tokenIds.increment();
+        uint256 newTokenId = _tokenIds.current();
+        _mint(msg.sender, newTokenId);
+        _tokenCoordinates[newTokenId] = Coordinates(x, y);
     }
 
     /// @notice Gets a segment of pixels from the grid
@@ -117,32 +144,13 @@ contract PixelStorageFactory {
 
         return segments[segmentIndex].getPixelOwner(localX, localY);
     }
-}
 
-contract PixelStorageSegment {
-    // Store colors as bytes3 (RGB) in a 100x100 array
-    mapping(uint8 => mapping(uint8 => bytes3)) private pixels;
-    mapping(uint8 => mapping(uint8 => address)) private pixelOwners;
-    address private immutable factory;
-
-    constructor() {
-        factory = msg.sender;
-    }
-
-    function setPixel(uint8 x, uint8 y, bytes3 color, address owner) external {
-        require(msg.sender == factory, "Only factory can call");
-        require(x < 100 && y < 100, "Coordinates out of bounds");
-        pixels[x][y] = color;
-        pixelOwners[x][y] = owner;
-    }
-
-    function getPixel(uint8 x, uint8 y) external view returns (bytes3) {
-        require(x < 100 && y < 100, "Coordinates out of bounds");
-        return pixels[x][y];
-    }
-
-    function getPixelOwner(uint8 x, uint8 y) external view returns (address) {
-        require(x < 100 && y < 100, "Coordinates out of bounds");
-        return pixelOwners[x][y];
+    /// @notice Gets the coordinates for a given token ID
+    /// @param tokenId The ID of the token to query
+    /// @return The x and y coordinates of the pixel associated with this token
+    function getTokenCoordinates(uint256 tokenId) external view returns (uint16 x, uint16 y) {
+        require(_exists(tokenId), "Token does not exist");
+        Coordinates memory coords = _tokenCoordinates[tokenId];
+        return (coords.x, coords.y);
     }
 }
