@@ -21,21 +21,12 @@ contract PixelStorageFactory {
     /// @dev Requires payment of 1 gwei per pixel in the rectangle
     /// @dev Reverts if any pixel in the rectangle is already set
     /// @dev Reverts if the rectangle would extend beyond the 1000x1000 grid
-    function setPixelRectangle(
-        uint16 startX,
-        uint16 startY,
-        uint16 width,
-        uint16 height,
-        bytes3 color
-    ) external payable {
-        require(
-            startX + width <= 1000 && startY + height <= 1000,
-            "Rectangle exceeds bounds"
-        );
-        require(
-            msg.value == uint256(width) * uint256(height) * 1 gwei,
-            "Must pay 1 gwei per pixel"
-        );
+    function setPixelRectangle(uint16 startX, uint16 startY, uint16 width, uint16 height, bytes3 color)
+        external
+        payable
+    {
+        require(startX + width <= 1000 && startY + height <= 1000, "Rectangle exceeds bounds");
+        require(msg.value == uint256(width) * uint256(height) * 1 gwei, "Must pay 1 gwei per pixel");
 
         for (uint16 y = startY; y < startY + height; y++) {
             for (uint16 x = startX; x < startX + width; x++) {
@@ -49,18 +40,10 @@ contract PixelStorageFactory {
                 uint8 localY = uint8(y % SEGMENT_SIZE);
 
                 // Check if pixel is already set
-                bytes3 existingColor = segments[segmentIndex].getPixel(
-                    localX,
-                    localY
-                );
+                bytes3 existingColor = segments[segmentIndex].getPixel(localX, localY);
                 require(existingColor == 0, "One or more pixels already set");
 
-                segments[segmentIndex].setPixel(
-                    localX,
-                    localY,
-                    color,
-                    msg.sender
-                );
+                segments[segmentIndex].setPixel(localX, localY, color, msg.sender);
             }
         }
     }
@@ -100,17 +83,11 @@ contract PixelStorageFactory {
     /// @dev The grid is indexed row by row, so index = y * 1000 + x
     /// @dev Due to Ethereum block gas limits (~30M), retrieving all 1M pixels at once would fail
     /// @dev Recommended to retrieve pixels in segments of 10k or less
-    function getPixelSegment(
-        uint32 start,
-        uint32 end
-    ) public view returns (bytes3[] memory) {
+    function getPixelSegment(uint32 start, uint32 end) public view returns (bytes3[] memory) {
         require(start < end && end <= 1000000, "Invalid range");
         bytes3[] memory pixels = new bytes3[](end - start);
         for (uint32 i = start; i < end; i++) {
-            pixels[i - start] = this.getPixel(
-                uint16(i % 1000),
-                uint16(i / 1000)
-            );
+            pixels[i - start] = this.getPixel(uint16(i % 1000), uint16(i / 1000));
         }
         return pixels;
     }

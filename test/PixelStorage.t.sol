@@ -26,11 +26,7 @@ contract PixelStorageTest is Test {
 
     function test_CanNotSetPixelOutOfBounds() public {
         vm.expectRevert("Coordinates out of bounds");
-        pixelStorageFactory.setPixel{value: 1 gwei}(
-            1000,
-            1000,
-            bytes3(0xFFFFFF)
-        );
+        pixelStorageFactory.setPixel{value: 1 gwei}(1000, 1000, bytes3(0xFFFFFF));
     }
 
     function test_PixelStorageSegmentOnlyFactoryCanSetPixel() public {
@@ -48,32 +44,17 @@ contract PixelStorageTest is Test {
 
     function test_PixelStorageRevertIfRectangleExceedsBounds() public {
         vm.expectRevert("Rectangle exceeds bounds");
-        pixelStorageFactory.setPixelRectangle(
-            0,
-            0,
-            1001,
-            1001,
-            bytes3(0xFFFFFF)
-        );
+        pixelStorageFactory.setPixelRectangle(0, 0, 1001, 1001, bytes3(0xFFFFFF));
     }
 
     function test_PixelStorageRevertIfOneOrMorePixelsAlreadySet() public {
         pixelStorageFactory.setPixel{value: 1 gwei}(0, 0, bytes3(0xFFFFFF));
         vm.expectRevert("One or more pixels already set");
-        pixelStorageFactory.setPixelRectangle{value: 1 gwei}(
-            0,
-            0,
-            1,
-            1,
-            bytes3(0xFFFFFF)
-        );
+        pixelStorageFactory.setPixelRectangle{value: 1 gwei}(0, 0, 1, 1, bytes3(0xFFFFFF));
     }
 
     function test_GetPixelSegment() public {
-        bytes3[] memory allPixels = pixelStorageFactory.getPixelSegment(
-            0,
-            10000
-        );
+        bytes3[] memory allPixels = pixelStorageFactory.getPixelSegment(0, 10000);
         assertEq(allPixels.length, 10000);
     }
 }
