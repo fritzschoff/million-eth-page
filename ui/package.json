@@ -1,0 +1,9 @@
+{
+  "name": "million-eth-page-ui",
+  "version": "1.0.0",
+  "description": "like http://www.milliondollarhomepage.com/",
+  "main": "index.js",
+  "author": "fritzschoff",
+  "license": "MIT",
+  "private": true
+}
