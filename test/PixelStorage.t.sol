@@ -61,10 +61,10 @@ contract PixelStorageTest is Test {
     function test_ERC721Minting() public {
         // Set a pixel and verify NFT is minted
         pixelStorageFactory.setPixel{value: 1 gwei}(5, 5, bytes3(0xFFFFFF));
-        
+
         // Token ID should be 1 for first mint
         assertEq(pixelStorageFactory.ownerOf(1), address(this));
-        
+
         // Verify coordinates are stored correctly
         (uint16 x, uint16 y) = pixelStorageFactory.getTokenCoordinates(1);
         assertEq(x, 5);
@@ -79,10 +79,10 @@ contract PixelStorageTest is Test {
         // Transfer to new address
         address newOwner = address(0x123);
         pixelStorageFactory.transferFrom(address(this), newOwner, tokenId);
-        
+
         // Verify new ownership
         assertEq(pixelStorageFactory.ownerOf(tokenId), newOwner);
-        
+
         // Original coordinates should remain unchanged
         (uint16 x, uint16 y) = pixelStorageFactory.getTokenCoordinates(tokenId);
         assertEq(x, 5);

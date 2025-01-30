@@ -12,7 +12,7 @@ contract PixelStorageFactory is ERC721 {
 
     // Mapping from tokenId to pixel coordinates
     mapping(uint256 => Coordinates) private _tokenCoordinates;
-    
+
     struct Coordinates {
         uint16 x;
         uint16 y;
@@ -57,7 +57,7 @@ contract PixelStorageFactory is ERC721 {
                 require(existingColor == 0, "One or more pixels already set");
 
                 segments[segmentIndex].setPixel(localX, localY, color, msg.sender);
-                
+
                 // Mint NFT for this pixel
                 _tokenIds++;
                 uint256 newTokenId = _tokenIds;
