@@ -3,11 +3,9 @@ pragma solidity ^0.8.0;
 
 import "./PixelStorageSegment.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
 
 contract PixelStorageFactory is ERC721 {
-    using Counters for Counters.Counter;
-    Counters.Counter private _tokenIds;
+    uint256 private _tokenIds;
 
     PixelStorageSegment[] public segments;
     uint8 public constant SEGMENT_SIZE = 100; // 100x100 pixels per segment
@@ -61,8 +59,8 @@ contract PixelStorageFactory is ERC721 {
                 segments[segmentIndex].setPixel(localX, localY, color, msg.sender);
                 
                 // Mint NFT for this pixel
-                _tokenIds.increment();
-                uint256 newTokenId = _tokenIds.current();
+                _tokenIds++;
+                uint256 newTokenId = _tokenIds;
                 _mint(msg.sender, newTokenId);
                 _tokenCoordinates[newTokenId] = Coordinates(x, y);
             }
@@ -96,8 +94,8 @@ contract PixelStorageFactory is ERC721 {
         segments[segmentIndex].setPixel(localX, localY, color, msg.sender);
 
         // Mint NFT for this pixel
-        _tokenIds.increment();
-        uint256 newTokenId = _tokenIds.current();
+        _tokenIds++;
+        uint256 newTokenId = _tokenIds;
         _mint(msg.sender, newTokenId);
         _tokenCoordinates[newTokenId] = Coordinates(x, y);
     }
@@ -147,9 +145,10 @@ contract PixelStorageFactory is ERC721 {
 
     /// @notice Gets the coordinates for a given token ID
     /// @param tokenId The ID of the token to query
-    /// @return The x and y coordinates of the pixel associated with this token
+    /// @return x The x coordinate of the pixel associated with this token
+    /// @return y The y coordinate of the pixel associated with this token
     function getTokenCoordinates(uint256 tokenId) external view returns (uint16 x, uint16 y) {
-        require(_exists(tokenId), "Token does not exist");
+        require(tokenId <= _tokenIds, "Token does not exist");
         Coordinates memory coords = _tokenCoordinates[tokenId];
         return (coords.x, coords.y);
     }
